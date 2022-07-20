@@ -25,6 +25,12 @@ const userController = {
         .select('-__v')
         .then((users) => res.json(users))
         .catch((err) => res.status(500).json(err));
+    },
+    addFriend(req,res) {
+
+    },
+    removeFriend(req,res) {
+        
     }
 }
 
