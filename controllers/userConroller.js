@@ -18,7 +18,7 @@ const userController = {
 
     },
     findOneUser(req,res) {
-
+        User.findOne({})
     },
     findAllUsers(req,res) {
         User.find()
