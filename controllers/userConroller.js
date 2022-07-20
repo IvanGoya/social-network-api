@@ -1,38 +1,88 @@
-const {User, Thought} = require('../models');
+const { User } = require('../models');
 
 const userController = {
-    createUser(req,res) {
+    createUser(req, res) {
         User.create(req.body)
-        .then((userData) => {
-            res.json(userData)
-        })
-        .catch((err) => {
-            console.log(err)
-            res.status(500).json(err);
-        })
+            .then((user) => {
+                res.json(user)
+            })
+            .catch((err) => {
+                console.log(err);
+                res.status(500).json(err);
+            });
     },
-    deleteUser(req,res) {
-
+    deleteUser(req, res) {
+        User.findOneAndRemove({ _id: req.params.userId })
+        .then((user) =>
+        !user
+          ? res.status(404).json({ message: 'User Does Not Exist!' })
+          : User.findOneAndUpdate(
+              { users: req.params.userId },
+              { $pull: { users: req.params.userId } },
+              { new: true }
+            )
+      )
+      .catch((err) => {
+        console.log(err);
+        res.status(500).json(err);
+      });
     },
-    updateUser(req,res) {
-
+    updateUser(req, res) {
+        User.findOneAndUpdate(
+            { _id: req.params.userId },
+            { $set: req.body },
+            { new: true }
+            )
+            .then((user) => {
+                !user
+              ? res.status(404).json({ message: 'User Does Not Exist!' })
+              : res.json(user)
+            })
+            .catch((err) => {
+                console.log(err);
+                return res.status(500).json(err);
+            });
     },
-    findOneUser(req,res) {
-        User.findOne({})
-    },
-    findAllUsers(req,res) {
-        User.find()
+    findOneUser(req, res) {
+        User.findOne({ _id: req.params.userId })
         .select('-__v')
-        .then((users) => res.json(users))
-        .catch((err) => res.status(500).json(err));
+        .then(async (user) => res.json(user)
+        )
+        .catch((err) => {
+          console.log(err);
+          return res.status(500).json(err);
+        });
     },
-    addFriend(req,res) {
-
+    findAllUsers(req, res) {
+        User.find()
+            .select('-__v')
+            .then(async (users) => res.json(users))
+            .catch((err) => res.status(500).json(err));
     },
-    removeFriend(req,res) {
-        
+    addFriend(req, res) {
+        User.findOneAndUpdate(
+            { _id : req.params.userId },
+            { $addToSet: { friends: req.params.friendId } },
+            { new: true },
+        )
+        .then((friend) => {
+            !friend
+          ? res.status(404).json({ message: 'No such friend exists' })
+          : res.json(friend)
+        });
+    },
+    removeFriend(req, res) {
+        User.findOneAndUpdate(
+            { _id: req.params.userId },
+            { $pull: { friends: req.params.friendId } },
+            { new: true },
+        )
+        .then((friend) => {
+            !friend
+          ? res.status(404).json({ message: 'No such friend exists' })
+          : res.json(friend)
+        })
     }
 }
 
-
-module.exports = userController;
+module.exports = userController
